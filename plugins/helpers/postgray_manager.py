@@ -1,8 +1,19 @@
+import os
+import sys
 import psycopg2
 from psycopg2.extras import RealDictCursor, DictCursor
 from datetime import date, datetime
 import textwrap
 import openpyxl
+from dotenv import load_dotenv
+load_dotenv()
+from helpers.aws_simple_email_service import ErrorEmailSender
+from helpers.exception import CustomException
+
+email_sender = ErrorEmailSender(
+    region_name=os.getenv("AWS_REGION_NAME"),
+    source_email=os.getenv("SOURCE_EMAIL"),
+    destination_email=os.getenv("DESTINATION_EMAIL"))
 
 class PostgresConnector:
     def __init__(self, connection) -> None:

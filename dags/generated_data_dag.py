@@ -143,8 +143,8 @@ def generate_data():
     FOLDER_NAME = "generated_data"
     try:
         generate_csv_files_to_s3(
-            num_rows=100,  
-            num_files=2, 
+            num_rows=1000,  
+            num_files=1, 
             bucket_name= aws_bucket_name,
             s3_folder=FOLDER_NAME,
             aws_access_key=aws_access_key_id,
