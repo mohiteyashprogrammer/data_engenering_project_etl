@@ -6,9 +6,9 @@ mysql-connector-python
 sqlalchemy 
 pymysql
 python-dotenv
-kaggle
-snowflake-connector-python
-snowflake-connector-python[pandas]
-snowflake-snowpark-python
-scikit-learn
+# kaggle
+# snowflake-snowpark-python
+# snowflake-connector-python[pandas]
+# snowflake-snowpark-python
+# scikit-learn
 pyarrow
