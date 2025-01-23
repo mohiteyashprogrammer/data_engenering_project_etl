@@ -1,4 +1,4 @@
-FROM quay.io/astronomer/astro-runtime:12.6.0
+FROM quay.io/astronomer/astro-runtime:11.4.0
 
 RUN pip install apache-airflow-providers-amazon
 COPY . .
