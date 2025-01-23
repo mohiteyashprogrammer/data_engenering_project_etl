@@ -1,1 +1,14 @@
 # Astro Runtime includes the following pre-installed providers packages: https://docs.astronomer.io/astro/runtime-image-architecture#provider-packages
+boto3
+numpy
+pandas
+mysql-connector-python
+sqlalchemy 
+pymysql
+python-dotenv
+kaggle
+snowflake-connector-python
+snowflake-connector-python[pandas]
+snowflake-snowpark-python
+scikit-learn
+pyarrow
