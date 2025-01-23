@@ -6,6 +6,7 @@ mysql-connector-python
 sqlalchemy 
 pymysql
 python-dotenv
+openpyxl
 # kaggle
 # snowflake-snowpark-python
 # snowflake-connector-python[pandas]
