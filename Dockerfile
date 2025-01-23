@@ -10,5 +10,6 @@ RUN pip install apache-airflow-providers-amazon
 RUN pip install --upgrade cryptography pyopenssl
 RUN pip install --upgrade sqlalchemy pandas
 RUN pip install mysql-connector-python
+RUN pip install psycopg2-binary
 # RUN pip install --user --upgrade pip
 RUN pip install -r requirements.txt
