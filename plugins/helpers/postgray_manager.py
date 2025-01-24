@@ -1,10 +1,12 @@
 import os
 import sys
+import pandas as pd
 import psycopg2
 from psycopg2.extras import RealDictCursor, DictCursor
 from datetime import date, datetime
 import textwrap
 import openpyxl
+from io import StringIO
 from dotenv import load_dotenv
 load_dotenv()
 from helpers.aws_simple_email_service import ErrorEmailSender
@@ -33,7 +35,6 @@ class PostgresConnector:
         """
         if self.conn:
             self.cursor.execute("SET TIME ZONE 'UTC';")
-            
             
     def execute_cr_table_query(self, query):
         """
@@ -109,8 +110,7 @@ class PostgresConnector:
         except psycopg2.Error as e:
             self.conn.rollback()
             raise e
-        
-        
+
     def insert_from_excel(self, schema_name, table_name, file_path):
         """
         Create a table and insert data from an Excel file into the specified schema and table.
@@ -154,3 +154,34 @@ class PostgresConnector:
 
         except Exception as e:
             print("Error during Excel data insertion:", e)
+
+    def copy_from_dataframe(self, df: pd.DataFrame, schema_name: str, table_name: str) -> None:
+        """
+        Copy a pandas DataFrame directly into a PostgreSQL table.
+
+        Args:
+            df (pd.DataFrame): The pandas DataFrame to copy.
+            schema_name (str): The schema name of the target table.
+            table_name (str): The target table name.
+
+        Raises:
+            Exception: If any error occurs during the process.
+        """
+        try:
+            if df.empty:
+                print("DataFrame is empty. No data to copy.")
+                return
+
+            # Convert DataFrame to a CSV buffer
+            csv_buffer = StringIO()
+            df.to_csv(csv_buffer, index=False, header=True)
+            csv_buffer.seek(0)
+
+            # Use the copy_from_csv method to copy data into the database
+            self.copy_from_csv(csv_buffer, schema_name, table_name)
+            print("DataFrame copied successfully to the table.")
+
+        except Exception as e:
+            print("Error during DataFrame copy:", e)
+            self.conn.rollback()
+            raise e
