@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS ym_de_products.product_table (
+    exported TEXT,
+    productid TEXT,
+    product TEXT,
+    price FLOAT8,
+    depacher TEXT,
+    arrival TEXT,
+    dateofcreation DATE,
+    location TEXT,
+    age INT,
+    "group" TEXT,
+    usage TEXT,
+    product_age INT,
+    transformation_date DATE,
+    transformation_time TIME,
+    price_category TEXT,
+    transit_time INT,
+    normalized_product_age FLOAT8,
+    region TEXT,
+    export_flag BOOLEAN,
+    high_value_flag BOOLEAN,
+    age_group TEXT
+);
