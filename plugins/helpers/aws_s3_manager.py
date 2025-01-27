@@ -11,7 +11,9 @@ from helpers.exception import CustomException
 email_sender = ErrorEmailSender(
     region_name=os.getenv("AWS_REGION_NAME"),
     source_email=os.getenv("SOURCE_EMAIL"),
-    destination_email=os.getenv("DESTINATION_EMAIL"))
+    destination_email=os.getenv("DESTINATION_EMAIL"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY_ID"))
 
 
 class AWS_S3Manager:
@@ -146,9 +148,40 @@ class AWS_S3Manager:
             )
             raise CustomException(e, sys)
 
+    def _get_next_incremental_filename(self, destination_folder):
+        """
+        Finds the next incremental filename in the destination folder.
+        Args:
+            destination_folder (str): Destination folder path in S3.
+        Returns:
+            str: Next available filename in the format 'data_file_X.csv'.
+        """
+        response = self.s3_client.list_objects_v2(Bucket=self.bucket_name, Prefix=destination_folder)
+        
+        if 'Contents' not in response:
+            # If no files exist, start with data_file_1.csv
+            return f"{destination_folder}"
+        
+        # Extract existing filenames
+        existing_files = [item['Key'] for item in response['Contents']]
+        max_num = 0
+        
+        for file in existing_files:
+            if file.startswith(destination_folder) and file.endswith('.csv'):
+                try:
+                    # Extract the number from the filename
+                    num = int(file.split('_')[-1].split('.')[0])
+                    if num > max_num:
+                        max_num = num
+                except ValueError:
+                    continue
+        
+        # Return the next incremental filename
+        return f"{destination_folder}data_file_{max_num + 1}.csv"
+
     def move_data(self, source_folder, destination_folder):
         """
-        Moves data in S3 bucket from source_folder to destination_folder.
+        Moves data in S3 bucket from source_folder to destination_folder with incremental naming.
         Args:
             source_folder (str): Source folder path in S3.
             destination_folder (str): Destination folder path in S3.
@@ -162,8 +195,8 @@ class AWS_S3Manager:
             if 'Contents' in response:
                 for obj in response['Contents']:
                     if not obj['Key'].endswith('/'):  # Ignore folders
-                        # Construct the new key destination path
-                        new_key = obj['Key'].replace(source_folder, destination_folder, 1)
+                        # Get the next incremental filename in the destination folder
+                        new_key = self._get_next_incremental_filename(destination_folder)
                         # Copy the object to the new location
                         self.s3_client.copy_object(
                             Bucket=self.bucket_name,
@@ -176,7 +209,4 @@ class AWS_S3Manager:
             else:
                 print(f"No objects found in {source_folder}.")
         except Exception as e:
-            email_sender.send_error_email(
-                message_to_send=f"Error occurred while moving data: {str(e)}"
-            )
-            raise CustomException(e, sys)
+            print(f"An error occurred while moving data: {e}")
