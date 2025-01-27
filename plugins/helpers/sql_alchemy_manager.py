@@ -11,13 +11,12 @@ from helpers.exception import CustomException
 # Load environment variables
 load_dotenv()
 
-# Email sender setup
 email_sender = ErrorEmailSender(
     region_name=os.getenv("AWS_REGION_NAME"),
     source_email=os.getenv("SOURCE_EMAIL"),
-    destination_email=os.getenv("DESTINATION_EMAIL")
-)
-
+    destination_email=os.getenv("DESTINATION_EMAIL"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY_ID"))
 class DatabaseManager:
 
     def __init__(self, connection_string):
