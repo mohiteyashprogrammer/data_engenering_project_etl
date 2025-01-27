@@ -24,8 +24,9 @@ load_dotenv()
 email_sender = ErrorEmailSender(
     region_name=os.getenv("AWS_REGION_NAME"),
     source_email=os.getenv("SOURCE_EMAIL"),
-    destination_email=os.getenv("DESTINATION_EMAIL")
-)
+    destination_email=os.getenv("DESTINATION_EMAIL"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY_ID"))
     
     
 import csv
@@ -35,6 +36,7 @@ import time
 from datetime import datetime
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+
 
 def generate_csv_files_to_s3(
     num_rows, 
@@ -61,20 +63,42 @@ def generate_csv_files_to_s3(
             aws_secret_access_key=aws_secret_key,
         )
         
+        # Ensure the folder name ends with a '/'
+        if not s3_folder.endswith('/'):
+            s3_folder += '/'
+        
         # List existing files in the S3 folder
         existing_files = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=s3_folder)
-        file_numbers = []
+        print("Existing files in S3 folder:", existing_files)  # Debug statement
+        
+        file_numbers = set()
         
         if 'Contents' in existing_files:
             # Extract file numbers from existing files
             for file in existing_files['Contents']:
                 file_name = file['Key'].split('/')[-1]  # Get the file name without the path
+                print("Processing file:", file_name)  # Debug statement
+                
+                # Skip folder-like objects (e.g., objects with a trailing '/')
+                if not file_name:
+                    print("Skipping folder-like object:", file['Key'])
+                    continue
+                
                 if file_name.startswith("data_file_") and file_name.endswith(".csv"):
-                    file_number = int(file_name.replace("data_file_", "").replace(".csv", ""))
-                    file_numbers.append(file_number)
+                    try:
+                        file_number = int(file_name.replace("data_file_", "").replace(".csv", ""))
+                        print("Extracted file number:", file_number)  # Debug statement
+                        file_numbers.add(file_number)
+                    except ValueError:
+                        print(f"Skipping file with invalid number: {file_name}")  # Debug statement
+                        continue
 
-        # Determine the starting file number
-        starting_file_number = max(file_numbers, default=0) + 1
+        # Find the next available file number
+        starting_file_number = 1
+        while starting_file_number in file_numbers:
+            starting_file_number += 1
+
+        print("Starting file number:", starting_file_number)  # Debug statement
 
         for file_counter in range(starting_file_number, starting_file_number + num_files):
             file_name = f"data_file_{file_counter}.csv"
@@ -107,7 +131,7 @@ def generate_csv_files_to_s3(
             print(f"Generated file: {file_name}")
 
             # Upload to S3
-            s3_key = f"{s3_folder}/{file_name}"
+            s3_key = f"{s3_folder}{file_name}"
             try:
                 s3_client.upload_file(file_name, bucket_name, s3_key)
                 print(f"Uploaded {file_name} to s3://{bucket_name}/{s3_key}")
