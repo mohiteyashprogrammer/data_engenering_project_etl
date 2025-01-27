@@ -9,7 +9,13 @@ from botocore.exceptions import BotoCoreError, ClientError
 from helpers.exception import CustomException
 
 class ErrorEmailSender:
-    def __init__(self, region_name, source_email, destination_email):
+    def __init__(
+        self, 
+        region_name, 
+        source_email, 
+        destination_email,
+        aws_access_key_id=None,
+        aws_secret_access_key=None):
         try:
             if not region_name or not isinstance(region_name, str):
                 raise ValueError("A valid AWS region name must be provided.")
@@ -20,7 +26,11 @@ class ErrorEmailSender:
             if not destination_email or not isinstance(destination_email, str):
                 raise ValueError("A valid destination email address must be provided.")
 
-            self.session = boto3.Session(region_name=region_name)
+            self.session = boto3.Session(
+                region_name=region_name,
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key)
+            
             self.client = self.session.client("ses")
             self.source_email = source_email
             self.destination_email = destination_email
